@@ -1,45 +1,41 @@
 'use strict';
+var path = require('path');
+var Clicks = require('../models/clicks.js');
 
-function clickHandler (db) {
-    var clicks = db.collection('clicks');
+function clickHandler () {
     this.getClicks = function(req,res) {
-        clicks.findOne({},{'_id':false},function(err,result) {
-            if(err) {
-                throw err;
-            } 
-            if (result) {
-                 res.json(result);
-            } else {
-                clicks.insert({'clicks':0}, function(err,data) {
-                    if (err) {
+        Clicks.findOne({},{'_id':false})
+                .exec( function(err,result) {
+                    if(err) {
                         throw err;
+                    } 
+                    if (result) {
+                         res.json(result);
+                    } else {
+                        var newDoc = new Clicks({'clicks':0});
+                        newDoc.save(function(err,doc) {
+                            if(err) { throw err; }
+                            res.json(doc);
+                        });
                     }
-                    res.json(data);
-                });
-            }
-            
-        })
+                    
+                })
     }
     
     this.addClick = function(req,res) {
-        clicks.findAndModify(
-            {},
-            {'id':1},
-            {$inc: {'clicks':1}},
+        Clicks.findOneAndUpdate({},{$inc:{'clicks':1}})
+        .exec(
             function(err,result) {
-                if(err) {
-                    throw err;
-                }
+                if(err) { throw err; }
                 res.json(result);
             }
         );
     }
     this.resetClicks = function(req,res) {
-        clicks.update(
-            {},
-            {'clicks':0},
+        Clicks.findOneAndUpdate({},{'clicks':0})
+        .exec(
             function(err,result) {
-                if(err) {throw err;}
+                if(err) { throw err; }
                 res.json(result);
             }
         );
